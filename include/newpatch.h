@@ -30,23 +30,25 @@
 #define DEFAULT_BOOTARGS_STRING "rd=md0 nand-enable-reformat=1 -progress"
 #define OTHER_DEFAULT_BOOTARGS_STRING "rd=md0 -progress -restore"
 #define CERT_STRING "Reliance on this"
-#define DART_CTRR_STRING "void dart_ctrr_reconfig" // From what I can tell the "Reliance on this..." string is gone as of iOS 13.x :(
 
 struct iboot64_img { // from iBoot32Patcher
 	void* buf;
 	size_t len;
 	uint32_t VERS;
+	uint32_t minor_vers;
+	uint64_t base;
 } __attribute__((packed));
 
 #define LOG(fmt, ...) printf("[+] " fmt, ##__VA_ARGS__);
 #define WARN(fmt, ...) printf("[!] " fmt, ##__VA_ARGS__);
 
-#define GET_IBOOT64_ADDR(iboot_in, x) (x - (uintptr_t) iboot_in->buf) + get_iboot64_base_address(iboot_in->buf)
+#define GET_IBOOT64_ADDR(iboot_in, x) (x - (uintptr_t) iboot_in->buf) + iboot_in->base
 #define GET_IBOOT_FILE_OFFSET(iboot_in, x) (x - (uintptr_t) iboot_in->buf)
 
 bool has_magic(uint8_t* buf);
 int patch_boot_args64(struct iboot64_img* iboot_in, char* bootargs);
-uint64_t get_iboot64_base_address(uint8_t* buf);
+uint64_t get_iboot64_base_address(struct iboot64_img* iboot_in);
+uint32_t get_iboot64_version(struct iboot64_img* iboot_in);
 uint64_t iboot64_ref(struct iboot64_img* iboot_in, void* pat);
 int enable_kernel_debug(struct iboot64_img* iboot_in);
 int rsa_sigcheck_patch(struct iboot64_img* iboot_in);
